@@ -37,15 +37,15 @@ public class VinceAsteroids
         appFrame = new JFrame("Kartan");
         XOFFSET = 0;
         YOFFSET = 40;
-        WINWIDTH = 500;
-        WINHEIGHT = 500;
+        WINWIDTH = 1500;
+        WINHEIGHT = 800;
         pi = 3.14159265358979;
         twoPi = 2.0 * 3.14159265358979;
         endgame = false;
         p1width = 25; // 18.5;
         p1height = 25; // 25;
-        p1originalX = (double) XOFFSET + ((double) WINWIDTH / 2.0);
-        p1originalY = (double) YOFFSET + ((double) WINHEIGHT / 2.0) / 2.0;
+        p1originalX = 70;
+        p1originalY = 400;
         playerBullets = new Vector<ImageObject>();
         playerBulletsTimes = new Vector<Long>();
         bulletWidth = 5;
@@ -54,28 +54,28 @@ public class VinceAsteroids
         explosionlifetime = 800L;
         playerbulletgap = 1;
         flamecount = 1;
-        flamewidth = 12.0;
+        flamewidth = 2.0;
         expcount = 1;
         level = 3;
-        asteroids = new Vector<ImageObject>();
+        wallVector = new Vector<ImageObject>();
         asteroidsTypes = new Vector<Integer>();
         ast1width = 32;
         ast2width = 21;
         ast3width = 26;
         try
         {
-            background = ImageIO.read(new File("checkerboardPattern.png"));
-            player = ImageIO.read(new File("tinyVeneno.png"));
-            flame1 = ImageIO.read(new File("flameleft.png"));
+            background = ImageIO.read(new File("AsteroidsProject\\MarioCircuitFinal.png"));
+            player = ImageIO.read(new File("AsteroidsProject\\\\tinyVeneno.png"));
+            flame1 = ImageIO.read(new File("AsteroidsProject\\\\flameleft.png"));
 
-            // (p1width / (p1height)
-            flame2 = ImageIO.read(new File("flamecenter.png"));
-            flame3 = ImageIO.read(new File("flameright.png"));
-            flame4 = ImageIO.read(new File("blueflameleft.png"));
-            flame5 = ImageIO.read(new File("blueflamecenter.png"));
-            flame6 = ImageIO.read(new File("blueflameright.png"));
-            exp1 = ImageIO.read(new File("explosion1.png"));
-            exp2 = ImageIO.read(new File("explosion2.png"));
+            WallDisplayImage = ImageIO.read(new File("AsteroidsProject\\\\walls.png"));
+            flame2 = ImageIO.read(new File("AsteroidsProject\\\\flamecenter.png"));
+            flame3 = ImageIO.read(new File("AsteroidsProject\\\\flameright.png"));
+            flame4 = ImageIO.read(new File("AsteroidsProject\\\\blueflameleft.png"));
+            flame5 = ImageIO.read(new File("AsteroidsProject\\\\blueflamecenter.png"));
+            flame6 = ImageIO.read(new File("AsteroidsProject\\\\blueflameright.png"));
+            exp1 = ImageIO.read(new File("AsteroidsProject\\\\explosion1.png"));
+            exp2 = ImageIO.read(new File("AsteroidsProject\\\\explosion2.png"));
         }
         catch (IOException ioe)
         {
@@ -90,9 +90,9 @@ public class VinceAsteroids
             while (endgame == false)
             {
                 backgroundDraw();
-                explosionsDraw();
+                //generateWalls();
+                wallsDraw();
                 playerDraw();
-                flameDraw();
 
                 try
                 {
@@ -111,8 +111,9 @@ public class VinceAsteroids
     {
         public PlayerMover()
         {
-            velocitystep = 0.01;
-            rotatestep = 0.01;
+            velocitystep = 0.03;
+            rotatestep = 0.04;
+            maxVelocity = 5.00;
         }
 
         public void run()
@@ -126,7 +127,7 @@ public class VinceAsteroids
                 catch (InterruptedException e)
                 {
                 }
-                if (upPressed == true)
+                if (upPressed == true && p1velocity < maxVelocity)
                 {
                     p1velocity = p1velocity + velocitystep;
                 }
@@ -155,31 +156,33 @@ public class VinceAsteroids
                         p1.rotate(rotatestep);
                     }
                 }
-
+                if (boostPressed == true && p1velocity < maxVelocity)
+                {
+                    p1velocity = p1velocity + (velocitystep*2);
+                }
+                if (boostPressed == false && brakePressed == false && upPressed == false && downPressed == false && leftPressed == false && rightPressed == false)
+                {
+                    if (p1velocity > 0) {
+                        p1velocity = p1velocity - 0.03;
+                    }
+                }
+                if (brakePressed == true) {
+                    // Apply gradual deceleration when braking
+                    p1velocity -= brakeDeceleration;
+                    if (p1velocity < 0) {
+                        p1velocity = 0;  // Ensure velocity doesn't go below zero
+                    }
+                }
                 p1.move(p1velocity * Math.cos(p1.getAngle() - pi / 2.0), p1velocity * Math.sin(p1.getAngle() - pi / 2.0));
                 p1.screenWrap(XOFFSET, XOFFSET + WINWIDTH, YOFFSET, YOFFSET + WINHEIGHT);
             }
         }
         private double velocitystep;
         private double rotatestep;
+        private double maxVelocity;
+        private double brakeDeceleration;  // Added variable for brake deceleration
     }
 
-
-    private static class FlameMover implements Runnable {
-        public FlameMover()
-        {
-            gap = 7.0;
-        }
-
-        public void run()
-        {
-            while (endgame == false)
-            {
-                lockrotateObjAroundObjbottom(flames, p1, gap);
-            }
-        }
-        private double gap;
-    }
 
 
     private static class CollisionChecker implements Runnable
@@ -189,115 +192,28 @@ public class VinceAsteroids
             Random randomNumbers = new Random(LocalTime.now().getNano());
             while (endgame == false)
             {
-                try
-                {
-                    // TODO compare all asteroids to all player bullets
-                    for (int i = 0; i < asteroids.size(); i++)
-                    {
-                        for (int j = 0; j < playerBullets.size(); j++)
-                        {
-                            if (collisionOccurs(asteroids.elementAt(i), playerBullets.elementAt(j)))
-                            {
-                                // delete asteroid, show explosion animation,
-                                // replace old asteroid with two new, smaller asteroids at the same place, random directions.
-                                double posX = asteroids.elementAt(i).getX();
-                                double posY = asteroids.elementAt(i).getY();
-                                // create explosion!
-                                explosions.addElement(new ImageObject(posX, posY, 27, 24, 0.0));
-                                explosionsTimes.addElement(System.currentTimeMillis());
-                                // create two new asteroids of type 2
-                                if (asteroidsTypes.elementAt(i) == 1)
-                                {
-                                    asteroids.addElement(new ImageObject(posX, posY, ast2width, ast2width, (double) (randomNumbers.nextInt(360))));
-                                    asteroidsTypes.addElement(2);
-                                    asteroids.remove(i);
-                                    asteroidsTypes.remove(i);
-                                    playerBullets.remove(j);
-                                    playerBulletsTimes.remove(j);
-                                }
-
-                                // create two new asteroids of type 3
-                                if (asteroidsTypes.elementAt(i) == 2) {
-                                    asteroids.addElement(new ImageObject(posX, posY, ast3width, ast3width, (double) (randomNumbers.nextInt(360))));
-                                    asteroidsTypes.addElement(3);
-                                    asteroids.remove(i);
-                                    asteroidsTypes.remove(i);
-                                    playerBullets.remove(j);
-                                    playerBulletsTimes.remove(j);
-                                }
-                                // delete asteroids
-                                if (asteroidsTypes.elementAt(i) == 3) {
-                                    asteroids.remove(i);
-                                    asteroidsTypes.remove(i);
-                                    playerBullets.remove(j);
-                                    playerBulletsTimes.remove(j);
-                                }
-                            }
-                        }
+                // compare enemy ship to player
+                    if (collisionOccurs(walls, p1)) {
+                        endgame = true;
+                        System.out.println("Game Over. You hit the wall!");
                     }
-                    // compare all asteroids to player
-                    for (int i = 0; i < asteroids.size(); i++) {
-                        if (collisionOccurs(asteroids.elementAt(i), p1)
-                        ) {
-                            endgame = true;
-                            System.out.println("Game Over. You Lose!");
-                        }
-                    }
-                    try {
-                        // compare all player bullets to enemy ship
-                        for (int i = 0; i < playerBullets.size(); i++) {
-                            if (collisionOccurs(playerBullets.elementAt(i), enemy) == true) {
-                                double posX = enemy.getX();
-                                double posY = enemy.getY();
-                                // create explosion!
-                                explosions.addElement(new ImageObject(posX, posY, 27, 24, 0.0));
-                                explosionsTimes.addElement(System.currentTimeMillis());
-                                playerBullets.remove(i);
-                                playerBulletsTimes.remove(i);
-                                enemyAlive = false;
-                                enemy = null;
-                                enemyBullets.clear();
-                                enemyBulletsTimes.clear();
-                            }
-                        }
-
-                        // compare enemy ship to player
-                        if (collisionOccurs(enemy, p1)) {
-                            endgame = true;
-                            System.out.println("Game Over. You Lose!");
-                        }
-
-                        // TODO compare all enemy bullets to player
-                        for (int i = 0; i < enemyBullets.size(); i++) {
-                            if (collisionOccurs(enemyBullets.elementAt(i), p1)) {
-                                endgame = true;
-                                System.out.println("Game Over. You Lose!");
-                            }
-                        }
-                    }
-                    catch (java.lang.NullPointerException jlnpe)
-                    {
-                }
-            } catch (java.lang.ArrayIndexOutOfBoundsException jlaioob)
-                {
-                }
             }
         }
     }
-    private static class WinChecker implements Runnable
-    {
-        public void run()
-        {
-            while (endgame == false)
-            {
-                if (asteroids.size() == 0)
-                {
-                    endgame = true;
-                    System.out.println("Game Over You Win");
-                }
-            }
-        }
-    }
+    // private static class WinChecker implements Runnable
+    // {
+    //     public void run()
+    //     {
+    //         while (endgame == false)
+    //         {
+    //             if (asteroids.size() == 0)
+    //             {
+    //                 endgame = true;
+    //                 System.out.println("Game Over You Win");
+    //             }
+    //         }
+    //     }
+    // }
     private static void generateAsteroids()
     {
         asteroids = new Vector<ImageObject>();
@@ -310,15 +226,15 @@ public class VinceAsteroids
         }
     }
 
-    private static void generateEnemy()
+    //switch this to generate the walls for the track
+    private static void generateWalls() 
     {
         try
         {
             Random randomNumbers = new Random(LocalTime.now().getNano());
 
-            enemy = new ImageObject(XOFFSET + (double) (randomNumbers.nextInt(WINWIDTH)),
-                    YOFFSET + (double) (randomNumbers.nextInt(WINHEIGHT)), 29.0, 16.0,
-                    (double) (randomNumbers.nextInt(360)));
+            walls = new ImageObject(100,100,0,0,0);
+
         } catch (java.lang.IllegalArgumentException jliae)
         {
         }
@@ -373,95 +289,12 @@ public class VinceAsteroids
         Graphics2D g2D = (Graphics2D) g;
         g2D.drawImage(rotateImageObject(p1).filter(player, null), (int) (p1.getX() + 0.5), (int) (p1.getY() + 0.5), null);
     }
-
-    private static void flameDraw()
-    {
-        if (upPressed == true)
-        {
-            Graphics g = appFrame.getGraphics();
-            Graphics2D g2D = (Graphics2D) g;
-            if (flamecount == 1)
-            {
-                g2D.drawImage(rotateImageObject(flames).filter(flame1, null), (int) (flames.getX() + 0.5),
-                        (int) (flames.getY() + 0.5), null);
-                flamecount = 1 + ((flamecount + 1) % 3);
-            }
-            else if (flamecount == 2)
-            {
-                g2D.drawImage(rotateImageObject(flames).filter(flame2, null), (int) (flames.getX() + 0.5),
-                        (int) (flames.getY() + 0.5), null);
-                flamecount = 1 + ((flamecount + 1) % 3);
-            }
-            else if (flamecount == 3)
-            {
-                g2D.drawImage(rotateImageObject(flames).filter(flame3, null), (int) (flames.getX() + 0.5),
-                        (int) (flames.getY() + 0.5), null);
-                flamecount = 1 + ((flamecount + 1) % 3);
-            }
-        }
-
-        if (downPressed == true)
-        {
-            Graphics g = appFrame.getGraphics();
-            Graphics2D g2D = (Graphics2D) g;
-            if (flamecount == 1)
-            {
-                g2D.drawImage(rotateImageObject(flames).filter(flame4, null), (int) (flames.getX() + 0.5),
-                        (int) (flames.getY() + 0.5), null);
-                flamecount = 1 + ((flamecount + 1) % 3);
-            }
-            else if (flamecount == 2)
-            {
-                g2D.drawImage(rotateImageObject(flames).filter(flame5, null), (int) (flames.getX() + 0.5),
-                        (int) (flames.getY() + 0.5), null);
-                flamecount = 1 + ((flamecount + 1) % 3);
-            }
-            else if (flamecount == 3)
-            {
-                g2D.drawImage(rotateImageObject(flames).filter(flame6, null), (int) (flames.getX() + 0.5),
-                        (int) (flames.getY() + 0.5), null);
-                flamecount = 1 + ((flamecount + 1) % 3);
-            }
-        }
-    }
-
-
-
-
-    private static void explosionsDraw()
-    {
+    private static void wallsDraw() {
         Graphics g = appFrame.getGraphics();
         Graphics2D g2D = (Graphics2D) g;
-        for (int i = 0; i < explosions.size(); i++)
-        {
-            if (System.currentTimeMillis() - explosionsTimes.elementAt(i) > explosionlifetime)
-            {
-                try
-                {
-                    explosions.remove(i);
-                    explosionsTimes.remove(i);
-                }
-                catch (java.lang.NullPointerException jlnpe)
-                {
-                    explosions.clear();
-                    explosionsTimes.clear();
-                }
-            } else
-            {
-                if (expcount == 1)
-                {
-                    g2D.drawImage(exp1, (int) (explosions.elementAt(i).getX() + 0.5),
-                            (int) (explosions.elementAt(i).getY() + 0.5), null);
-                    expcount = 2;
-                } else if (expcount == 2)
-                {
-                    g2D.drawImage(exp2, (int) (explosions.elementAt(i).getX() + 0.5),
-                            (int) (explosions.elementAt(i).getY() + 0.5), null);
-                    expcount = 1;
-                }
-            }
-        }
+        g2D.drawImage(WallDisplayImage, 193, 38, null);
     }
+
     private static class KeyPressed extends AbstractAction {
         public KeyPressed() {
             action = "";
@@ -484,8 +317,11 @@ public class VinceAsteroids
             if (action.equals("RIGHT")) {
                 rightPressed = true;
             }
-            if (action.equals("F")) {
-                firePressed = true;
+            if (action.equals("B")) {
+                boostPressed = true;
+            }
+            if (action.equals("V")) {
+                brakePressed = true;
             }
         }
 
@@ -514,8 +350,11 @@ public class VinceAsteroids
             if (action.equals("RIGHT")) {
                 rightPressed = false;
             }
-            if (action.equals("F")) {
-                firePressed = false;
+            if (action.equals("B")) {
+                boostPressed = false;
+            }
+            if (action.equals("V")) {
+                brakePressed = false;
             }
         }
 
@@ -530,20 +369,25 @@ public class VinceAsteroids
     private static class StartGame implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             endgame = true;
-            enemyAlive = true;
             upPressed = false;
             downPressed = false;
             leftPressed = false;
             rightPressed = false;
-            firePressed = false;
+            boostPressed = false;
+            brakePressed = false;
+
+            //modify the starting position of player 1
             p1 = new ImageObject(p1originalX, p1originalY, p1width, p1height, 0.0);
+
             p1velocity = 0.0;
-            generateEnemy();
-            flames = new ImageObject(p1originalX + p1width / 2.0, p1originalY + p1height, flamewidth, flamewidth, 0.0);
+            generateWalls();
+
+            //modify the starting position of the flames
+            flames = new ImageObject(p1originalX, p1originalY, 25, 25, 0.0);
             flamecount = 1;
             expcount = 1;
             try {
-                Thread.sleep(50);
+                Thread.sleep(20);
             } catch (InterruptedException ie) {
 
             }
@@ -557,14 +401,12 @@ public class VinceAsteroids
             endgame = false;
             Thread t1 = new Thread(new Animate());
             Thread t2 = new Thread(new PlayerMover());
-            Thread t3 = new Thread(new FlameMover());
             Thread t8 = new Thread(new CollisionChecker());
-            Thread t9 = new Thread(new WinChecker());
+            //Thread t9 = new Thread(new WinChecker());
             t1.start();
             t2.start();
-            t3.start();
             t8.start();
-            t9.start();
+            //t9.start();
         }
     }
         private static class GameLevel implements ActionListener {
@@ -576,20 +418,6 @@ public class VinceAsteroids
                     ret = 2;
                 } else if (input.equals("Three")) {
                     ret = 3;
-                } else if (input.equals("Four")) {
-                    ret = 4;
-                } else if (input.equals("Five")) {
-                    ret = 5;
-                } else if (input.equals("Six")) {
-                    ret = 6;
-                } else if (input.equals("Seven")) {
-                    ret = 7;
-                } else if (input.equals("Eight")) {
-                    ret = 8;
-                } else if (input.equals("Nine")) {
-                    ret = 9;
-                } else if (input.equals("Ten")) {
-                    ret = 10;
                 }
                 return ret;
             }
@@ -601,52 +429,52 @@ public class VinceAsteroids
             }
         }
 
-        private static Boolean isInside(double p1x, double p1y, double p2x1, double p2y1, double p2x2, double p2y2) {
-            Boolean ret = false;
-            if (p1x > p2x1 && p1x < p2x2) {
-                if (p1y > p2y1 && p1y < p2y2) {
-                    ret = true;
-                } else if (p1y > p2y2 && p1y < p2y1) {
-                    ret = true;
-                }
-            }
-            if (p1x > p2x2 && p1x < p2x1) {
-                if (p1y > p2y1 && p1y < p2y2) {
-                    ret = true;
-                } else if (p1y > p2y2 && p1y < p2y1) {
-                    ret = true;
-                }
-            }
-            return ret;
-        }
+        // private static Boolean isInside(double p1x, double p1y, double p2x1, double p2y1, double p2x2, double p2y2) {
+        //     Boolean ret = false;
+        //     if (p1x > p2x1 && p1x < p2x2) {
+        //         if (p1y > p2y1 && p1y < p2y2) {
+        //             ret = true;
+        //         } else if (p1y > p2y2 && p1y < p2y1) {
+        //             ret = true;
+        //         }
+        //     }
+        //     if (p1x > p2x2 && p1x < p2x1) {
+        //         if (p1y > p2y1 && p1y < p2y2) {
+        //             ret = true;
+        //         } else if (p1y > p2y2 && p1y < p2y1) {
+        //             ret = true;
+        //         }
+        //     }
+        //     return ret;
+        // }
 
         private static Boolean collisionOccursCoordinates(double p1x1, double p1y1, double p1x2, double p1y2,
                                                           double p2x1, double p2y1, double p2x2, double p2y2) {
             Boolean ret = false;
-            if (isInside(p1x1, p1y1, p2x1, p2y1, p2x2, p2y2)) {
-                ret = true;
-            }
-            if (isInside(p1x1, p1y2, p2x1, p2y1, p2x2, p2y2)) {
-                ret = true;
-            }
-            if (isInside(p1x2, p1y1, p2x1, p2y1, p2x2, p2y2)) {
-                ret = true;
-            }
-            if (isInside(p1x2, p1y2, p2x1, p2y1, p2x2, p2y2)) {
-                ret = true;
-            }
-            if (isInside(p2x1, p2y1, p1x1, p1y1, p1x2, p1y2)) {
-                ret = true;
-            }
-            if (isInside(p2x1, p2y2, p1x1, p1y1, p1x2, p1y2)) {
-                ret = true;
-            }
-            if (isInside(p2x2, p2y1, p1x1, p1y1, p1x2, p1y2)) {
-                ret = true;
-            }
-            if (isInside(p2x2, p2y2, p1x1, p1y1, p1x2, p1y2)) {
-                ret = true;
-            }
+            // if (isInside(p1x1, p1y1, p2x1, p2y1, p2x2, p2y2)) {
+            //     ret = true;
+            // }
+            // if (isInside(p1x1, p1y2, p2x1, p2y1, p2x2, p2y2)) {
+            //     ret = true;
+            // }
+            // if (isInside(p1x2, p1y1, p2x1, p2y1, p2x2, p2y2)) {
+            //     ret = true;
+            // }
+            // if (isInside(p1x2, p1y2, p2x1, p2y1, p2x2, p2y2)) {
+            //     ret = true;
+            // }
+            // if (isInside(p2x1, p2y1, p1x1, p1y1, p1x2, p1y2)) {
+            //     ret = true;
+            // }
+            // if (isInside(p2x1, p2y2, p1x1, p1y1, p1x2, p1y2)) {
+            //     ret = true;
+            // }
+            // if (isInside(p2x2, p2y1, p1x1, p1y1, p1x2, p1y2)) {
+            //     ret = true;
+            // }
+            // if (isInside(p2x2, p2y2, p1x1, p1y1, p1x2, p1y2)) {
+            //     ret = true;
+            // }
             return ret;
         }
 
@@ -784,6 +612,8 @@ public class VinceAsteroids
             if (x < leftEdge) {
                 moveto(rightEdge, getY());
             }
+
+            //no bottom to top wrapping
             if (y > bottomEdge) {
                 moveto(getX(), topEdge);
             }
@@ -838,7 +668,7 @@ public class VinceAsteroids
 
         JPanel myPanel = new JPanel();
 
-        String[] levels = {"One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"};
+        String[] levels = {"One", "Two", "Three"};
         JComboBox<String> levelMenu = new JComboBox<String>(levels);
         levelMenu.setSelectedIndex(2);
         levelMenu.addActionListener(new GameLevel());
@@ -853,7 +683,9 @@ public class VinceAsteroids
         bindKey(myPanel, "DOWN");
         bindKey(myPanel, "LEFT");
         bindKey(myPanel, "RIGHT");
-        bindKey(myPanel, "F");
+        bindKey(myPanel, "B");
+        bindKey(myPanel, "V");
+
 
         appFrame.getContentPane().add(myPanel, "South");
         appFrame.setVisible(true);
@@ -861,21 +693,30 @@ public class VinceAsteroids
 
     private static Boolean endgame;
     private static Boolean enemyAlive;
+
     private static BufferedImage background;
+
+    private static BufferedImage WallDisplayImage;
+
     private static BufferedImage player;
     private static Boolean upPressed;
     private static Boolean downPressed;
     private static Boolean leftPressed;
     private static Boolean rightPressed;
-    private static Boolean firePressed;
+    private static Boolean boostPressed;
+    private static Boolean brakePressed;
     private static ImageObject p1;
     private static double p1width;
     private static double p1height;
     private static double p1originalX;
     private static double p1originalY;
     private static double p1velocity;
-    private static ImageObject enemy;
-    private static BufferedImage enemyShip;
+    // private static ImageObject enemy;
+    // private static BufferedImage enemyShip;
+
+    //replace with
+    private static ImageObject walls;
+    private static BufferedImage wallPicture;
     private static BufferedImage enemyBullet;
     private static Vector<ImageObject> enemyBullets;
     private static Vector<Long> enemyBulletsTimes;
@@ -897,6 +738,9 @@ public class VinceAsteroids
     private static double flamewidth;
     private static int level;
     private static Vector<ImageObject> asteroids;
+
+    private static Vector<ImageObject> wallVector;
+
     private static Vector<Integer> asteroidsTypes;
     private static BufferedImage ast1;
     private static BufferedImage ast2;

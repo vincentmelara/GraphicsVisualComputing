@@ -719,40 +719,6 @@ public class Asteroids
         }
     }
 
-    private static void explosionsDraw()
-    {
-        Graphics g = appFrame.getGraphics();
-        Graphics2D g2D = (Graphics2D) g;
-        for (int i = 0; i < explosions.size(); i++)
-        {
-            if (System.currentTimeMillis() - explosionsTimes.elementAt(i) > explosionlifetime)
-            {
-                try
-                {
-                    explosions.remove(i);
-                    explosionsTimes.remove(i);
-                }
-                catch (java.lang.NullPointerException jlnpe)
-                {
-                    explosions.clear();
-                    explosionsTimes.clear();
-                }
-            } else
-            {
-                if (expcount == 1)
-                {
-                    g2D.drawImage(exp1, (int) (explosions.elementAt(i).getX() + 0.5),
-                            (int) (explosions.elementAt(i).getY() + 0.5), null);
-                    expcount = 2;
-                } else if (expcount == 2)
-                {
-                    g2D.drawImage(exp2, (int) (explosions.elementAt(i).getX() + 0.5),
-                            (int) (explosions.elementAt(i).getY() + 0.5), null);
-                    expcount = 1;
-                }
-            }
-        }
-    }
     private static class KeyPressed extends AbstractAction {
         public KeyPressed() {
             action = "";
@@ -778,6 +744,7 @@ public class Asteroids
             if (action.equals("F")) {
                 firePressed = true;
             }
+            
         }
 
         private String action;
