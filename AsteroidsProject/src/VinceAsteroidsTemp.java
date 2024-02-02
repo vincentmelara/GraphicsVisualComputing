@@ -24,13 +24,15 @@ import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 
-public class VinceAsteroids
+public class VinceAsteroidsTemp
 {
-    public VinceAsteroids() {
+    public VinceAsteroidsTemp()
+    {
         setup();
     }
 
-    public static void setup() {
+    public static void setup()
+    {
         appFrame = new JFrame("Kartan");
         XOFFSET = 0;
         YOFFSET = 40;
@@ -44,18 +46,6 @@ public class VinceAsteroids
         p1originalX = 70;
         p1originalY = 400;
         playerBullets = new Vector<ImageObject>();
-
-
-
-
-        //TODO store all of your walls in a vector
-
-        //once all of your walls are in here, position them in the correct place
-
-        //once they are in the correct place, compare the player to the walls to see if they are colliding.
-        VectorOfWalls = new Vector<ImageObject>();
-
-
         playerBulletsTimes = new Vector<Long>();
         bulletWidth = 5;
         playerbulletlifetime = 1600L;
@@ -73,21 +63,25 @@ public class VinceAsteroids
         ast3width = 26;
         try
         {
-            background = ImageIO.read(new File("AsteroidsProject\\MarioCircuitFinal.png"));
-            player = ImageIO.read(new File("AsteroidsProject\\tinyVeneno.png"));
-            flame1 = ImageIO.read(new File("AsteroidsProject\\flameleft.png"));
 
-            WallDisplayImage = ImageIO.read(new File("AsteroidsProject\\walls.png"));
-            flame2 = ImageIO.read(new File("AsteroidsProject\\flamecenter.png"));
-            flame3 = ImageIO.read(new File("AsteroidsProject\\flameright.png"));
-            flame4 = ImageIO.read(new File("AsteroidsProject\\blueflameleft.png"));
-            flame5 = ImageIO.read(new File("AsteroidsProject\\blueflamecenter.png"));
-            flame6 = ImageIO.read(new File("AsteroidsProject\\blueflameright.png"));
-            exp1 = ImageIO.read(new File("AsteroidsProject\\explosion1.png"));
-            exp2 = ImageIO.read(new File("AsteroidsProject\\explosion2.png"));
+
+            
+            background = ImageIO.read(new File("AsteroidsProject\\MarioCircuitTitle.png"));
+            player = ImageIO.read(new File("AsteroidsProject\\\\tinyVeneno.png"));
+            flame1 = ImageIO.read(new File("AsteroidsProject\\\\flameleft.png"));
+
+            WallDisplayImage = ImageIO.read(new File("AsteroidsProject\\\\walls.png"));
+            flame2 = ImageIO.read(new File("AsteroidsProject\\\\flamecenter.png"));
+            flame3 = ImageIO.read(new File("AsteroidsProject\\\\flameright.png"));
+            flame4 = ImageIO.read(new File("AsteroidsProject\\\\blueflameleft.png"));
+            flame5 = ImageIO.read(new File("AsteroidsProject\\\\blueflamecenter.png"));
+            flame6 = ImageIO.read(new File("AsteroidsProject\\\\blueflameright.png"));
+            exp1 = ImageIO.read(new File("AsteroidsProject\\\\explosion1.png"));
+            exp2 = ImageIO.read(new File("AsteroidsProject\\\\explosion2.png"));
         }
         catch (IOException ioe)
         {
+
         }
     }
 
@@ -102,10 +96,11 @@ public class VinceAsteroids
                 wallsDraw();
                 playerDraw();
                 drawSpeedIndicator();
+                drawLapCounter();
 
                 try
                 {
-                    Thread.sleep(32);
+                    Thread.sleep(1);
                 }
                 catch (InterruptedException e)
                 {
@@ -195,6 +190,10 @@ public class VinceAsteroids
                     if (p1velocity > 0) {
                         p1velocity -= 0.03;
                     }
+                    if (p1velocity < 0) {
+                        p1velocity += 0.03;
+                    }
+                    
                 }
 
                 //if we press the brakes we want to gradually slow down
@@ -227,7 +226,9 @@ public class VinceAsteroids
                 p1.move(p1velocity * Math.cos(p1.getAngle() - pi / 2.0), p1velocity * Math.sin(p1.getAngle() - pi / 2.0));
                 p1.screenWrap(XOFFSET, XOFFSET + WINWIDTH, YOFFSET, YOFFSET + WINHEIGHT);
             }
+            
         }
+
         private double velocitystep;
         private double rotatestep;
         private double maxVelocity;
@@ -237,6 +238,57 @@ public class VinceAsteroids
         public double driftAngle;  // Adjust the drift angle as needed
         public double driftDeceleration;  // Adjust the drift deceleration rate as needed
     }
+
+
+    public static int lapCounter = 0;
+    public static boolean lapDone = false;
+
+        public static int checkLapCompletion() {
+            // Define the x and y range for lap completion
+            double lapXRangeStart = 56.0;  // Adjust these values as needed
+            double lapXRangeEnd = 140.0;
+            double lapYRangeStart = 370.0;
+            double lapYRangeEnd = 380.0;
+
+
+            // Check if the player is within the specified x and y range
+            if (p1.getX() >= lapXRangeStart && p1.getX() <= lapXRangeEnd &&
+            p1.getY() >= lapYRangeStart && p1.getY() <= lapYRangeEnd) {
+            // Output lap completion message to the console
+            System.out.println("Lap " + lapCounter + " completed!");
+            lapDone = true;
+            lapCounter += 1;
+            } else if (!(p1.getX() >= lapXRangeStart && p1.getX() <= lapXRangeEnd &&
+            p1.getY() >= lapYRangeStart && p1.getY() <= lapYRangeEnd)) {
+                lapDone = false;
+            }
+            return lapCounter;
+        }
+
+        public static void drawLapCounter() {
+            int lapNum = checkLapCompletion();
+            if (lapNum > 0) {
+            Graphics g = appFrame.getGraphics();
+            g.setFont(new Font("Arial", Font.PLAIN, 14));
+            g.setColor(Color.black);
+            // lapcount box
+
+
+            //draw the lap count inside the box
+            g.setColor(Color.black);
+            String lapNo = "Current Lap Number:";
+            g.drawString(lapNo, 180, 50);
+            g.drawString(String.valueOf(lapNum), 230, 72);
+            }
+        }
+
+
+
+
+        
+
+
+
 
 
 
@@ -256,20 +308,20 @@ public class VinceAsteroids
             }
         }
     }
-    // private static class WinChecker implements Runnable
-    // {
-    //     public void run()
-    //     {
-    //         while (endgame == false)
-    //         {
-    //             if (asteroids.size() == 0)
-    //             {
-    //                 endgame = true;
-    //                 System.out.println("Game Over You Win");
-    //             }
-    //         }
-    //     }
-    // }
+    private static class WinChecker implements Runnable
+    {
+        public void run()
+        {
+            while (endgame == false)
+            {
+                if (lapCompleted == true)
+                {
+                    endgame = true;
+                    System.out.println("Game Over You Win");
+                }
+            }
+        }
+    }
  
 
     //switch this to generate the walls for the track
@@ -283,6 +335,10 @@ public class VinceAsteroids
             asteroids.addElement(new ImageObject(XOFFSET + (double) (randomNumbers.nextInt(WINWIDTH)), YOFFSET + (double) (randomNumbers.nextInt(WINHEIGHT)), ast1width, ast1width, (double) (randomNumbers.nextInt(360))));
             asteroidsTypes.addElement(1);
         }
+
+        // Set lap start time
+        lapStartTime = System.currentTimeMillis();
+        lapCompleted = false;
     }
 
     // TODO make one lock rotate function which takes as input objInner,
@@ -330,6 +386,15 @@ public class VinceAsteroids
 
     private static void playerDraw()
     {
+        try
+                {
+                    // controls bullet speed
+                    Thread.sleep(1);
+                }
+                catch (InterruptedException e)
+                {
+
+                }
         Graphics g = appFrame.getGraphics();
         Graphics2D g2D = (Graphics2D) g;
         g2D.drawImage(rotateImageObject(p1).filter(player, null), (int) (p1.getX() + 0.5), (int) (p1.getY() + 0.5), null);
@@ -343,16 +408,14 @@ public class VinceAsteroids
     private static void drawSpeedIndicator() {
         Graphics g = appFrame.getGraphics();
         g.setFont(new Font("Arial", Font.PLAIN, 36));
-
         g.setColor(Color.black);
+
         // Speedometer circle
         g.fillOval(20, 50, 100, 100);
-
 
         //draw the text speed over the circle
         g.setColor(Color.white);
         g.drawString(String.format("%.2f", p1velocity), 35, 130);
-
 
         double speedometerMaxSpeed = 5.00;  // Adjust this based on your maximum speed
         double angle = p1velocity / speedometerMaxSpeed * 180.0;  // Convert speed to angle
@@ -364,10 +427,8 @@ public class VinceAsteroids
         int endX = (int) (startX + 40 * Math.cos(Math.toRadians(angle)));
         int endY = (int) (startY - 40 * Math.sin(Math.toRadians(angle)));
         g.drawLine(startX, startY, endX, endY);
-    
-    }
 
-    
+    }
 
     private static class KeyPressed extends AbstractAction {
         public KeyPressed() {
@@ -454,6 +515,7 @@ public class VinceAsteroids
             p1 = new ImageObject(p1originalX, p1originalY, p1width, p1height, 0.0);
 
             p1velocity = 0.0;
+            lapCounter = 0;
             generateWalls();
 
             //modify the starting position of the flames
@@ -461,12 +523,10 @@ public class VinceAsteroids
             flamecount = 1;
             expcount = 1;
             try {
-                Thread.sleep(20);
+                Thread.sleep(2);
             } catch (InterruptedException ie) {
             }
             playerBullets = new Vector<ImageObject>();
-
-            VectorOfWalls = new Vector<ImageObject>();
             playerBulletsTimes = new Vector<Long>();
             enemyBullets = new Vector<ImageObject>();
             enemyBulletsTimes = new Vector<Long>();
@@ -502,52 +562,52 @@ public class VinceAsteroids
             }
         }
 
-        // private static Boolean isInside(double p1x, double p1y, double p2x1, double p2y1, double p2x2, double p2y2) {
-        //     Boolean ret = false;
-        //     if (p1x > p2x1 && p1x < p2x2) {
-        //         if (p1y > p2y1 && p1y < p2y2) {
-        //             ret = true;
-        //         } else if (p1y > p2y2 && p1y < p2y1) {
-        //             ret = true;
-        //         }
-        //     }
-        //     if (p1x > p2x2 && p1x < p2x1) {
-        //         if (p1y > p2y1 && p1y < p2y2) {
-        //             ret = true;
-        //         } else if (p1y > p2y2 && p1y < p2y1) {
-        //             ret = true;
-        //         }
-        //     }
-        //     return ret;
-        // }
+        private static Boolean isInside(double p1x, double p1y, double p2x1, double p2y1, double p2x2, double p2y2) {
+            Boolean ret = false;
+            if (p1x > p2x1 && p1x < p2x2) {
+                if (p1y > p2y1 && p1y < p2y2) {
+                    ret = true;
+                } else if (p1y > p2y2 && p1y < p2y1) {
+                    ret = true;
+                }
+            }
+            if (p1x > p2x2 && p1x < p2x1) {
+                if (p1y > p2y1 && p1y < p2y2) {
+                    ret = true;
+                } else if (p1y > p2y2 && p1y < p2y1) {
+                    ret = true;
+                }
+            }
+            return ret;
+        }
 
         private static Boolean collisionOccursCoordinates(double p1x1, double p1y1, double p1x2, double p1y2,
                                                           double p2x1, double p2y1, double p2x2, double p2y2) {
             Boolean ret = false;
-            // if (isInside(p1x1, p1y1, p2x1, p2y1, p2x2, p2y2)) {
-            //     ret = true;
-            // }
-            // if (isInside(p1x1, p1y2, p2x1, p2y1, p2x2, p2y2)) {
-            //     ret = true;
-            // }
-            // if (isInside(p1x2, p1y1, p2x1, p2y1, p2x2, p2y2)) {
-            //     ret = true;
-            // }
-            // if (isInside(p1x2, p1y2, p2x1, p2y1, p2x2, p2y2)) {
-            //     ret = true;
-            // }
-            // if (isInside(p2x1, p2y1, p1x1, p1y1, p1x2, p1y2)) {
-            //     ret = true;
-            // }
-            // if (isInside(p2x1, p2y2, p1x1, p1y1, p1x2, p1y2)) {
-            //     ret = true;
-            // }
-            // if (isInside(p2x2, p2y1, p1x1, p1y1, p1x2, p1y2)) {
-            //     ret = true;
-            // }
-            // if (isInside(p2x2, p2y2, p1x1, p1y1, p1x2, p1y2)) {
-            //     ret = true;
-            // }
+            if (isInside(p1x1, p1y1, p2x1, p2y1, p2x2, p2y2)) {
+                ret = true;
+            }
+            if (isInside(p1x1, p1y2, p2x1, p2y1, p2x2, p2y2)) {
+                ret = true;
+            }
+            if (isInside(p1x2, p1y1, p2x1, p2y1, p2x2, p2y2)) {
+                ret = true;
+            }
+            if (isInside(p1x2, p1y2, p2x1, p2y1, p2x2, p2y2)) {
+                ret = true;
+            }
+            if (isInside(p2x1, p2y1, p1x1, p1y1, p1x2, p1y2)) {
+                ret = true;
+            }
+            if (isInside(p2x1, p2y2, p1x1, p1y1, p1x2, p1y2)) {
+                ret = true;
+            }
+            if (isInside(p2x2, p2y1, p1x1, p1y1, p1x2, p1y2)) {
+                ret = true;
+            }
+            if (isInside(p2x2, p2y2, p1x1, p1y1, p1x2, p1y2)) {
+                ret = true;
+            }
             return ret;
         }
 
@@ -680,18 +740,17 @@ public class VinceAsteroids
 
         public void screenWrap(double leftEdge, double rightEdge, double topEdge, double bottomEdge) {
             if (x > rightEdge) {
-                moveto(leftEdge, getY());
-            }
-            if (x < leftEdge) {
                 moveto(rightEdge, getY());
             }
-
+            if (x < leftEdge) {
+                moveto(leftEdge, getY());
+            }
             //no bottom to top wrapping
             if (y > bottomEdge) {
-                moveto(getX(), topEdge);
+                moveto(getX(), bottomEdge);
             }
             if (y < topEdge) {
-                moveto(getX(), bottomEdge);
+                moveto(getX(), topEdge);
             }
         }
 
@@ -752,6 +811,8 @@ public class VinceAsteroids
 
         appFrame.getContentPane().add(myPanel, "South");
         appFrame.setVisible(true);
+
+
     }
 
     private static Boolean endgame;
@@ -778,10 +839,6 @@ public class VinceAsteroids
     private static Vector<Long> enemyBulletsTimes;
     private static Long enemybulletlifetime;
     private static Vector<ImageObject> playerBullets;
-
-    private static Vector<ImageObject> VectorOfWalls;
-
-
     private static Vector<Long> playerBulletsTimes;
     private static double bulletWidth;
     private static BufferedImage playerBullet;

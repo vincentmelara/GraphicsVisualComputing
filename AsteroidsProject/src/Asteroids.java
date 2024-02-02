@@ -64,24 +64,23 @@ public class Asteroids
         ast3width = 26;
         try
         {
-            background = ImageIO.read(new File("space.png"));
-            player = ImageIO.read(new File("player.png"));
-            flame1 = ImageIO.read(new File("flameleft.png"));
+            background = ImageIO.read(new File("AsteroidsProject\\\\space.png"));
+            player = ImageIO.read(new File("AsteroidsProject\\\\player.png"));
+            flame1 = ImageIO.read(new File("AsteroidsProject\\\\flameleft.png"));
 
-            // (p1width / (p1height
-            flame2 = ImageIO.read(new File("flamecenter.png"));
-            flame3 = ImageIO.read(new File("flameright.png"));
-            flame4 = ImageIO.read(new File("blueflameleft.png"));
-            flame5 = ImageIO.read(new File("blueflamecenter.png"));
-            flame6 = ImageIO.read(new File("blueflameright.png"));
-            ast1 = ImageIO.read(new File("ast1.png"));
-            ast2 = ImageIO.read(new File("ast2.png"));
-            ast3 = ImageIO.read(new File("ast3.png"));
-            playerBullet = ImageIO.read(new File("playerbullet.png"));
-            enemyShip = ImageIO.read(new File("enemy.png"));
-            enemyBullet = ImageIO.read(new File("enemybullet.png"));
-            exp1 = ImageIO.read(new File("explosion1.png"));
-            exp2 = ImageIO.read(new File("explosion2.png"));
+            flame2 = ImageIO.read(new File("AsteroidsProject\\\\flamecenter.png"));
+            flame3 = ImageIO.read(new File("AsteroidsProject\\\\flameright.png"));
+            flame4 = ImageIO.read(new File("AsteroidsProject\\\\blueflameleft.png"));
+            flame5 = ImageIO.read(new File("AsteroidsProject\\\\blueflamecenter.png"));
+            flame6 = ImageIO.read(new File("AsteroidsProject\\\\blueflameright.png"));
+            ast1 = ImageIO.read(new File("AsteroidsProject\\\\walls.png"));
+            ast2 = ImageIO.read(new File("AsteroidsProject\\\\ast2.png"));
+            ast3 = ImageIO.read(new File("AsteroidsProject\\\\ast3.png"));
+            playerBullet = ImageIO.read(new File("AsteroidsProject\\\\playerbullet.png"));
+            enemyShip = ImageIO.read(new File("AsteroidsProject\\\\enemy.png"));
+            enemyBullet = ImageIO.read(new File("AsteroidsProject\\\\enemybullet.png"));
+            exp1 = ImageIO.read(new File("AsteroidsProject\\\\explosion1.png"));
+            exp2 = ImageIO.read(new File("AsteroidsProject\\\\explosion2.png"));
         }
         catch (IOException ioe)
         {
@@ -96,7 +95,6 @@ public class Asteroids
             {
                 backgroundDraw();
                 asteroidsDraw();
-                explosionsDraw();
                 enemyBulletsDraw();
                 enemyDraw();
                 playerBulletsDraw();
@@ -122,19 +120,7 @@ public class Asteroids
         playerBulletsTimes.addElement(System.currentTimeMillis());
     }
 
-    private static void insertEnemyBullet() {
-        try {
-            // randomize angle here
-            Random randomNumbers = new Random(LocalTime.now().getNano());
-            ImageObject bullet = new ImageObject(enemy.getX() + enemy.getWidth() / 2.0, enemy.getY() + enemy.getHeight() / 2.0, bulletWidth, bulletWidth, randomNumbers.nextInt(360));
-            // lockrotateObjAroundObjbottom(bullet, enemy, enemy.getWidth() / 2.0);
-            enemyBullets.addElement(bullet);
-            enemyBulletsTimes.addElement(System.currentTimeMillis());
-        }
-        catch (java.lang.NullPointerException jlnpe)
-        {
-        }
-    }
+    
     private static class PlayerMover implements Runnable
     {
         public PlayerMover()
@@ -352,11 +338,11 @@ public class Asteroids
                     {
                         if (enemyBullets.size() == 0)
                         {
-                            insertEnemyBullet();
+                            //insertEnemyBullet();
                         }
                         else if (System.currentTimeMillis() - enemyBulletsTimes.elementAt(enemyBulletsTimes.size() - 1) > enemybulletlifetime / 4.0)
                         {
-                            insertEnemyBullet();
+                            //insertEnemyBullet();
                         }
                     }
                 }
@@ -369,50 +355,6 @@ public class Asteroids
         private double velocity;
     }
 
-    private static class EnemyBulletsMover implements Runnable
-    {
-        public EnemyBulletsMover()
-        {
-            velocity = 1.2;
-        }
-
-        public void run()
-        {
-            while (endgame == false && enemyAlive == true)
-            {
-                try
-                {
-                    // controls bullet speed
-                    Thread.sleep(4);
-                }
-                catch (InterruptedException e)
-                {
-
-                }
-
-                try
-                {
-                    for (int i = 0; i < enemyBullets.size(); i++)
-                    {
-                        enemyBullets.elementAt(i).move(-velocity * Math.cos(enemyBullets.elementAt(i).getAngle() - pi / 2.0), velocity * Math.sin(enemyBullets.elementAt(i).getAngle() - pi / 2.0));
-                        enemyBullets.elementAt(i).screenWrap(XOFFSET, XOFFSET + WINWIDTH, YOFFSET, YOFFSET + WINHEIGHT);
-
-                        if (System.currentTimeMillis() - enemyBulletsTimes.elementAt(i) > enemybulletlifetime)
-                        {
-                            enemyBullets.remove(i);
-                            enemyBulletsTimes.remove(i);
-                        }
-                    }
-                }
-                catch (java.lang.ArrayIndexOutOfBoundsException aie)
-                {
-                    enemyBullets.clear();
-                    enemyBulletsTimes.clear();
-                }
-            }
-        }
-        private double velocity;
-    }
     private static class CollisionChecker implements Runnable
     {
         public void run()
@@ -471,7 +413,7 @@ public class Asteroids
                         if (collisionOccurs(asteroids.elementAt(i), p1)
                         ) {
                             endgame = true;
-                            System.out.println("Game Over. You Lose!");
+                            System.out.println("Game Over. You hit an asteroid!");
                         }
                     }
                     try {
@@ -819,7 +761,6 @@ public class Asteroids
             Thread t4 = new Thread(new AsteroidsMover());
             Thread t5 = new Thread(new PlayerBulletsMover());
             Thread t6 = new Thread(new EnemyShipMover());
-            Thread t7 = new Thread(new EnemyBulletsMover());
             Thread t8 = new Thread(new CollisionChecker());
             Thread t9 = new Thread(new WinChecker());
             t1.start();
@@ -828,7 +769,6 @@ public class Asteroids
             t4.start();
             t5.start();
             t6.start();
-            t7.start();
             t8.start();
             t9.start();
         }
@@ -1100,7 +1040,7 @@ public class Asteroids
     public static void main(String[] args) {
         setup();
         appFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        appFrame.setSize(565, 800);
+        appFrame.setSize(1500, 800);
 
         JPanel myPanel = new JPanel();
 
