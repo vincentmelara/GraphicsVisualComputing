@@ -24,6 +24,12 @@ import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineEvent;
+import javax.sound.sampled.LineListener;
+
 public class VinceAsteroidsTemp
 {
     public VinceAsteroidsTemp()
@@ -283,6 +289,34 @@ public class VinceAsteroidsTemp
         }
 
 
+        private static void playAudio(String filePath) {
+            try {
+                // Open the audio file
+                AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(filePath));
+        
+                // Get a Clip instance
+                Clip clip = AudioSystem.getClip();
+        
+                // Open the audio stream and start playing
+                clip.open(audioInputStream);
+                clip.start();
+        
+                // Add a listener to stop the program when the audio finishes
+                clip.addLineListener(new LineListener() {
+                    @Override
+                    public void update(LineEvent event) {
+                        if (event.getType() == LineEvent.Type.STOP) {
+                            clip.close();
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        
+
+
 
 
         
@@ -517,6 +551,8 @@ public class VinceAsteroidsTemp
             p1velocity = 0.0;
             lapCounter = 0;
             generateWalls();
+            playAudio("AsteroidsProject\\SNES Mario Circuit 3 - Mario Kart 8 Deluxe OST.wav\"");  // Change the file name accordingly
+
 
             //modify the starting position of the flames
             flames = new ImageObject(p1originalX, p1originalY, 25, 25, 0.0);
